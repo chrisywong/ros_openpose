@@ -64,7 +64,8 @@ class RealtimeVisualization():
         We are using 5 LINE_STRIP to draw a hand
         '''
 
-        self.upper_body_ids = [0, 1, 8]
+        self.upper_body_ids = [8, 1, 0, 15, 17, 18, 16, 0] #add in eyes/ears
+        #self.upper_body_ids = [0, 1, 8]
         self.hands_ids = [4, 3, 2, 1, 5, 6, 7]
         self.legs_ids = [22, 11, 10, 9, 8, 12, 13, 14, 19]
         self.body_parts = [self.upper_body_ids, self.hands_ids, self.legs_ids]
@@ -179,7 +180,7 @@ class RealtimeVisualization():
             nose = person.bodyParts[self.nose_id]
             if self.isValid(nose):
                 person_id.pose.position = Point(nose.point.x, nose.point.y + self.id_text_offset, nose.point.z)
-                marker_array.markers.append(person_id)
+                # marker_array.markers.append(person_id)
 
             # update the counter
             person_counter += 1
