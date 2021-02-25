@@ -46,6 +46,11 @@ add_message_files(
   Frame.msg
 )
 
+add_service_files(
+  FILES
+  compute3DPoint_srv.srv
+)
+
 generate_messages(
   DEPENDENCIES
   std_msgs

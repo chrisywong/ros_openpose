@@ -67,6 +67,12 @@ namespace ros_openpose
     // we are okay with default destructor
     ~CameraReader() = default;
 
+    std::vector<int> getImageFrameSize()
+    {
+      std::vector<int> frameSize = {mColorImageUsed.rows, mColorImageUsed.cols};
+      return frameSize;
+    }
+
     // returns the current frame number
     // the frame number starts from 0 and increments
     // by 1 each time a frame (color) is received
@@ -135,6 +141,37 @@ namespace ros_openpose
       // point[1] = depth * point3d.y;
       // point[2] = depth * point3d.z;
       // for more info., please see http://wiki.ros.org/image_geometry
+
+      auto x = (pixelX - mSPtrCameraInfo->K.at(2)) / mSPtrCameraInfo->K.at(0);
+      auto y = (pixelY - mSPtrCameraInfo->K.at(5)) / mSPtrCameraInfo->K.at(4);
+
+      point[0] = depth * x;
+      point[1] = depth * y;
+      point[2] = depth;
+    }
+
+    void compute3DPointavg(const float pixelX, const float pixelY, float (&point)[3])
+    {
+      auto depth = mDepthImageUsed.at<float>(static_cast<int>(pixelY), static_cast<int>(pixelX));
+
+      if (depth <= 0)
+        return;
+
+      auto imageSize = getImageFrameSize();
+      std::vector<float> point3Dz;
+      auto depthLEFT = mDepthImageUsed.at<float>(static_cast<int>(pixelY), static_cast<int>(pixelX-1));
+      auto depthRIGHT = mDepthImageUsed.at<float>(static_cast<int>(pixelY), static_cast<int>(pixelX+1));
+      auto depthUP = mDepthImageUsed.at<float>(static_cast<int>(pixelY+1), static_cast<int>(pixelX));
+      auto depthDOWN = mDepthImageUsed.at<float>(static_cast<int>(pixelY-1), static_cast<int>(pixelX));
+      if (depth > 0) point3Dz.push_back(depth);
+      if (depthLEFT > 0) point3Dz.push_back(depthLEFT);
+      if (depthRIGHT > 0) point3Dz.push_back(depthRIGHT);
+      if (depthUP > 0) point3Dz.push_back(depthUP);
+      if (depthDOWN > 0) point3Dz.push_back(depthDOWN);
+      std::sort(point3Dz.begin(), point3Dz.end());
+
+      if (point3Dz.size() % 2 == 1) depth = point3Dz[point3Dz.size()/2];
+      else depth = (point3Dz[std::floor(point3Dz.size()/2)] + point3Dz[std::ceil(point3Dz.size()/2)])/2.0;
 
       auto x = (pixelX - mSPtrCameraInfo->K.at(2)) / mSPtrCameraInfo->K.at(0);
       auto y = (pixelY - mSPtrCameraInfo->K.at(5)) / mSPtrCameraInfo->K.at(4);

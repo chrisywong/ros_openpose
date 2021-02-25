@@ -7,28 +7,41 @@ Date: 2019/11/23
 -->
 <launch>
   <!-- rostopic to subscribe for color images -->
-  <arg name="color_topic" default="/image_view/output" />
+  <arg name="color_topic" default="/camera/color/image_raw" />
 
   <!-- rostopic to subscribe for depth images.
   leave this field as it is because we do not have depth information. -->
-  <arg name="depth_topic" default="depth_topic" />
+  <arg name="depth_topic" default="/camera/aligned_depth_to_color/image_raw" />
 
   <!-- rostopic to subscribe for camera calibration parameters.
   leave this field as it is because we do not have depth information. -->
-  <arg name="cam_info_topic" default="cam_info_topic" />
+  <arg name="cam_info_topic" default="/camera/color/camera_info" />
 
   <!-- frame id for point cloud and 3D skeleton data.
   leave this field as it is because we do not have depth information. -->
-  <arg name="frame_id" default="no_depth" />
+  <arg name="frame_id" default="camera_color_optical_frame" />
 
   <!-- we do not have depth information.
   hence set the flag. -->
   <arg name="no_depth" default="true" />
-  <arg name="skeleton" default="false" />
+  <arg name="skeleton" default="true" />
   <arg name="skeleton_hands" default="false" />
 
   <!-- no RViz support -->
-  <arg name="rviz" default="false" />
+  <arg name="rviz" default="true" />
+  <group if="$(arg pointcloud)" >
+    <!-- invoke rviz -->
+    <group if="$(arg rviz)" >
+      <node pkg="rviz" type="rviz" respawn="false" required="true" name="rviz" args="-d $(find ros_openpose)/files/person_pointcloud_realsense.rviz" />
+    </group>
+  </group>
+
+  <group unless="$(arg pointcloud)" >
+    <!-- invoke rviz -->
+    <group if="$(arg rviz)" >
+      <node pkg="rviz" type="rviz" respawn="false" required="true" name="rviz" args="-d $(find ros_openpose)/files/only_person_realsense.rviz" />
+    </group>
+  </group>
 
   <!-- note that the following parameters are going to assigned by other launch file upon call. -->
   <arg name="print" default="" />

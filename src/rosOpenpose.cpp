@@ -29,6 +29,12 @@ const int SLEEP_MS = 10;
 typedef std::shared_ptr<op::Datum> sPtrDatum;
 typedef std::shared_ptr<std::vector<sPtrDatum>> sPtrVecSPtrDatum;
 
+// bool compute3DPoint_srv(ros_openpose::Request  &req, ros_openpose::Response &res)
+// {
+//   ROS_INFO("[rOP] Inside service");
+//   return true;
+// }
+
 // the input worker. the job of this worker is to provide color imagees to
 // openpose wrapper
 class WUserInput : public op::WorkerProducer<sPtrVecSPtrDatum>
@@ -137,7 +143,68 @@ public:
       float point3D[3];
       // compute 3D point only if depth flag is set
       if (!mNoDepth)
-        mSPtrCameraReader->compute3DPoint(x, y, point3D);
+      {
+        // mSPtrCameraReader->compute3DPoint(x, y, point3D);
+        mSPtrCameraReader->compute3DPointavg(x, y, point3D);
+
+        // float point3Dpre = point3D[2];
+        // auto imageSize = mSPtrCameraReader->getImageFrameSize();
+        // // ROS_WARN("[rosOP] imageSize %d %d", imageSize[0], imageSize[1]); //480 640
+        // std::vector<double> point3Dz;
+        // if (!std::isnan(point3D[2])) point3Dz.push_back(point3D[2]);
+        //
+        // float point3Dup[3], point3Ddown[3], point3Dleft[3], point3Dright[3];
+        // if (x != 0) {mSPtrCameraReader->compute3DPoint(x-1, y, point3Dleft);}
+        // if (x != imageSize[0] - 1) {mSPtrCameraReader->compute3DPoint(x+1, y, point3Dright);}
+        // if (y != 0) {mSPtrCameraReader->compute3DPoint(x, y-1, point3Ddown);}
+        // if (y != imageSize[1] - 1) {mSPtrCameraReader->compute3DPoint(x, y+1, point3Dup);}
+        //
+        // if(!std::isnan(point3Dleft[2]) && point3Dleft[2] != 0) point3Dz.push_back(point3Dleft[2]);
+        // if(!std::isnan(point3Dright[2]) && point3Dright[2] != 0) point3Dz.push_back(point3Dright[2]);
+        // if(!std::isnan(point3Ddown[2]) && point3Ddown[2] != 0) point3Dz.push_back(point3Ddown[2]);
+        // if(!std::isnan(point3Dup[2]) && point3Dup[2] != 0) point3Dz.push_back(point3Dup[2]);
+        //
+        // std::sort(point3Dz.begin(), point3Dz.end());
+        //
+        // if (point3Dz.size() % 2 == 1) point3D[2] = point3Dz[point3Dz.size()/2];
+        // else point3D[2] = (point3Dz[std::floor(point3Dz.size()/2)] + point3Dz[std::ceil(point3Dz.size()/2)])/2.0;
+        //
+        // if(bodyPart == 0)
+        // {
+        //   for(int i=0; i < point3Dz.size(); i++) ROS_INFO("[rosOP] %i: %f", i, point3Dz[i]);
+        //   ROS_INFO("[rosOP] point3D xyz %f %f %f [%f %f]", point3D[0], point3D[1], point3D[2], x ,y);
+        //   ROS_INFO("[rosOP] point3D %f -> %f", point3Dpre, point3D[2]);
+        // }
+      }
+
+
+      // if(std::isnan(point3D[2]) || point3D[2] == 0.0) ROS_WARN("[rosOP] body greetings");
+      // // stuff for prev valid
+      // {
+      //   ROS_INFO("[rosOP] greetings");
+      //   mFrame.persons[person].bodyParts[bodyPart].pixel.x = mFrame_prevvalid.persons[person].bodyParts[bodyPart].pixel.x;
+      //   mFrame.persons[person].bodyParts[bodyPart].pixel.y = mFrame_prevvalid.persons[person].bodyParts[bodyPart].pixel.y;
+      //   mFrame.persons[person].bodyParts[bodyPart].score = mFrame_prevvalid.persons[person].bodyParts[bodyPart].score;
+      //   mFrame.persons[person].bodyParts[bodyPart].point.x = mFrame_prevvalid.persons[person].bodyParts[bodyPart].point.x;
+      //   mFrame.persons[person].bodyParts[bodyPart].point.y = mFrame_prevvalid.persons[person].bodyParts[bodyPart].point.y;
+      //   mFrame.persons[person].bodyParts[bodyPart].point.z = mFrame_prevvalid.persons[person].bodyParts[bodyPart].point.z;
+      // }
+      // else
+      // {
+      //   mFrame.persons[person].bodyParts[bodyPart].pixel.x = x;
+      //   mFrame.persons[person].bodyParts[bodyPart].pixel.y = y;
+      //   mFrame.persons[person].bodyParts[bodyPart].score = score;
+      //   mFrame.persons[person].bodyParts[bodyPart].point.x = point3D[0];
+      //   mFrame.persons[person].bodyParts[bodyPart].point.y = point3D[1];
+      //   mFrame.persons[person].bodyParts[bodyPart].point.z = point3D[2];
+      //
+      //   mFrame_prevvalid.persons[person].bodyParts[bodyPart].pixel.x = x;
+      //   mFrame_prevvalid.persons[person].bodyParts[bodyPart].pixel.y = y;
+      //   mFrame_prevvalid.persons[person].bodyParts[bodyPart].score = score;
+      //   mFrame_prevvalid.persons[person].bodyParts[bodyPart].point.x = point3D[0];
+      //   mFrame_prevvalid.persons[person].bodyParts[bodyPart].point.y = point3D[1];
+      //   mFrame_prevvalid.persons[person].bodyParts[bodyPart].point.z = point3D[2];
+      // }
 
       mFrame.persons[person].bodyParts[bodyPart].pixel.x = x;
       mFrame.persons[person].bodyParts[bodyPart].pixel.y = y;
@@ -172,21 +239,25 @@ public:
       // compute 3D point only if depth flag is set
       if (!mNoDepth)
       {
-        mSPtrCameraReader->compute3DPoint(xLeft, yLeft, point3DLeft);
-        mSPtrCameraReader->compute3DPoint(xRight, yRight, point3DRight);
+        // mSPtrCameraReader->compute3DPoint(xLeft, yLeft, point3DLeft);
+        // mSPtrCameraReader->compute3DPoint(xRight, yRight, point3DRight);
+        mSPtrCameraReader->compute3DPointavg(xLeft, yLeft, point3DLeft);
+        mSPtrCameraReader->compute3DPointavg(xRight, yRight, point3DRight);
       }
+      if(std::isnan(point3DLeft[2]) || point3DLeft[2] == 0.0) ROS_WARN("[rosOP] left greetings");
+      if(std::isnan(point3DRight[2]) || point3DRight[2] == 0.0) ROS_WARN("[rosOP] right greetings");
 
       mFrame.persons[person].leftHandParts[handPart].pixel.x = xLeft;
       mFrame.persons[person].leftHandParts[handPart].pixel.y = yLeft;
       mFrame.persons[person].leftHandParts[handPart].score = scoreLeft;
-      mFrame.persons[person].leftHandParts[handPart].point.x = point3DLeft[0];
+      mFrame.persons[person].leftHandParts[handPart].point.x = point3DLeft[0]-0.02;
       mFrame.persons[person].leftHandParts[handPart].point.y = point3DLeft[1];
       mFrame.persons[person].leftHandParts[handPart].point.z = point3DLeft[2];
 
       mFrame.persons[person].rightHandParts[handPart].pixel.x = xRight;
       mFrame.persons[person].rightHandParts[handPart].pixel.y = yRight;
       mFrame.persons[person].rightHandParts[handPart].score = scoreRight;
-      mFrame.persons[person].rightHandParts[handPart].point.x = point3DRight[0];
+      mFrame.persons[person].rightHandParts[handPart].point.x = point3DRight[0]-0.02;
       mFrame.persons[person].rightHandParts[handPart].point.y = point3DRight[1];
       mFrame.persons[person].rightHandParts[handPart].point.z = point3DRight[2];
     }
@@ -248,6 +319,7 @@ public:
 private:
   const bool mNoDepth;
   ros_openpose::Frame mFrame;
+  ros_openpose::Frame mFrame_prevvalid;
   const ros::Publisher mFramePublisher;
   const std::shared_ptr<ros_openpose::CameraReader> mSPtrCameraReader;
 };
@@ -521,6 +593,7 @@ int main(int argc, char* argv[])
 
   // the frame consists of the location of detected body parts of each person
   const ros::Publisher framePublisher = nh.advertise<ros_openpose::Frame>(pubTopic, 1);
+  // ros::ServiceServer service = nh.advertiseService("camera_compute3D", compute3DPoint_srv);
 
   try
   {
