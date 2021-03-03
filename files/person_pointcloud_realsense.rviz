@@ -75,16 +75,16 @@ Visualization Manager:
       Marker Topic: visualization_marker
       Name: Marker
       Namespaces:
-        my_namespace: true
+        gaze_estimation_marker: true
       Queue Size: 100
       Value: true
     - Class: rviz/Axes
-      Enabled: true
+      Enabled: false
       Length: 0.10000000149011612
       Name: Axes
       Radius: 0.009999999776482582
       Reference Frame: camera_aligned_depth_to_color_frame
-      Value: true
+      Value: false
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
